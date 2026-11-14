@@ -5,7 +5,7 @@ import joblib
 import sqlite3
 import os
 import datetime
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 # Page Configuration
 st.set_page_config(
@@ -21,7 +21,6 @@ st.markdown("""
     .main { background-color: #0f172a; color: #f8fafc; }
     .stSidebar { background-color: #1e293b; }
     h1, h2, h3 { color: #38bdf8 !important; font-family: 'Segoe UI', sans-serif; }
-    .metric-card { background-color: #1e293b; padding: 20px; border-radius: 10px; border-left: 5px solid #38bdf8; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -86,7 +85,12 @@ model, dataset = load_model()
 
 # Sidebar Navigation
 st.sidebar.markdown("### 🛠️ Enterprise Suite")
-menu = st.sidebar.radio("Navigation Panel", ["⚡ Live AI Prediction", "📈 Advanced Analytics", "🗄️ SQL Historical Logs"])
+menu = st.sidebar.radio("Navigation Panel", [
+    "⚡ Live AI Prediction", 
+    "📁 Batch CSV Analysis", 
+    "📈 Interactive Analytics", 
+    "🗄️ SQL Historical Logs"
+])
 
 st.sidebar.markdown("---")
 st.sidebar.info("System Status: **Online & Secured**\nEngine: Gradient Boosting AI")
@@ -157,27 +161,53 @@ if menu == "⚡ Live AI Prediction":
         else:
             st.info("👈 Adjust parameters on the left and click **Execute AI Inference** to analyze system health.")
 
-elif menu == "📈 Advanced Analytics":
-    st.subheader("📈 Industrial Telemetry Distribution Mapping")
-    st.markdown("Visualizing multi-dimensional sensor data against historical failure thresholds.")
+elif menu == "📁 Batch CSV Analysis":
+    st.subheader("📁 Bulk Telemetry Analysis (CSV Upload)")
+    st.markdown("Upload a CSV file containing machine sensor logs (`Temperature`, `Vibration`, `Pressure`) for automated batch AI diagnostics.")
     
-    fig, ax = plt.subplots(figsize=(9, 5))
-    scatter = ax.scatter(dataset['Temperature'][:400], dataset['Vibration'][:400], 
-                         c=dataset['Failure'][:400], cmap='coolwarm', alpha=0.85, edgecolors='k', s=50)
-    ax.set_title("Temperature vs Vibration Mapping (AI Training Space)", fontsize=11, fontweight='bold', color='#334155')
-    ax.set_xlabel("Core Temperature (°C)", fontsize=10)
-    ax.set_ylabel("Vibration Amplitude", fontsize=10)
-    ax.grid(True, linestyle='--', alpha=0.6)
+    uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
     
-    st.pyplot(fig)
+    if uploaded_file is not None:
+        user_df = pd.read_csv(uploaded_file)
+        st.write("Preview of Uploaded Data:", user_df.head())
+        
+        if {'Temperature', 'Vibration', 'Pressure'}.issubset(user_df.columns):
+            if st.button("Run Batch AI Analysis", use_container_width=True):
+                preds = model.predict(user_df[['Temperature', 'Vibration', 'Pressure']])
+                user_df['AI_Prediction'] = np.where(preds == 1, 'CRITICAL', 'NORMAL')
+                
+                st.success("Batch analysis completed successfully!")
+                st.dataframe(user_df, use_container_width=True)
+        else:
+            st.error("Error: The uploaded CSV must contain columns: Temperature, Vibration, Pressure.")
+    else:
+        st.info("💡 Tip: You can upload any standard sensor log file to test bulk predictions.")
+
+elif menu == "📈 Interactive Analytics":
+    st.subheader("📈 Interactive Multi-Dimensional Sensor Mapping")
+    st.markdown("Powered by **Plotly**: Hover, zoom, and rotate data points dynamically.")
+    
+    # Plotly Scatter Plot
+    fig = px.scatter(
+        dataset[:500], 
+        x="Temperature", 
+        y="Vibration", 
+        color=dataset[:500]['Failure'].astype(str),
+        size="Pressure",
+        color_discrete_map={'0': '#38bdf8', '1': '#f43f5e'},
+        title="Temperature vs Vibration Interactive Cluster Analysis",
+        labels={'color': 'Failure Status (0: Normal, 1: Risk)'}
+    )
+    fig.update_layout(paper_bgcolor='#0f172a', plot_bgcolor='#1e293b', font_color='#f8fafc')
+    
+    st.plotly_chart(fig, use_container_width=True)
 
 elif menu == "🗄️ SQL Historical Logs":
     st.subheader("🗄️ Database Telemetry History & Audit Trail")
     st.markdown("All automated and manual inference logs stored securely in the local SQLite database.")
     
-    col_r1, col_r2 = st.columns([2, 8])
-    with col_r1:
-        refresh_logs = st.button("🔄 Refresh Table", use_container_width=True)
+    if st.button("🔄 Refresh Table", use_container_width=True):
+        pass
         
     conn = sqlite3.connect(DB_FILENAME)
     logs_df = pd.read_sql_query("SELECT * FROM telemetry_logs ORDER BY id DESC", conn)
