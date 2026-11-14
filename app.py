@@ -314,3 +314,52 @@ elif menu == "🗄️ SQL Historical Logs":
         )
     else:
         st.warning(f"No historical telemetry records found for **{selected_machine}** yet.")
+        import streamlit as st
+
+# إعداد الصفحة
+st.set_page_config(page_title="Enterprise Industrial AI", layout="wide")
+
+# تخصيص الخطوط والـ CSS الاحترافي
+st.markdown("""
+    <style>
+    /* استيراد خط احترافي من جوجل */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+    /* تطبيق الخط على كامل التطبيق */
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* تنسيق بطاقات الإحصائيات (KPI Cards) */
+    .metric-card {
+        background-color: #1e2530;
+        border: 1px solid #2d3748;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+    }
+    .metric-card:hover {
+        transform: translateY(-3px);
+        border-color: #ff4b4b;
+    }
+
+    /* تنسيق العناوين الفرعية */
+    h3 {
+        color: #e2e8f0;
+        font-weight: 600;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# مثال على استخدام بطاقة إحصائيات بتصميم احترافي
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown("""
+        <div class="metric-card">
+            <h4 style="color: #a0aec0; margin:0;">Active Assets</h4>
+            <h2 style="color: #fff; margin: 10px 0 0 0;">12 / 12</h2>
+            <span style="color: #48bb78; font-size: 0.9rem;">● All systems operational</span>
+        </div>
+    """, unsafe_allow_html=True)
